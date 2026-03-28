@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn Sarah's Lines — Inside the Lines</title>
+  <style>
+    :root {
+      --bg: #fdf5fa;
+      --card: #fff0f7;
+      --card2: #fce8f4;
+      --pink: #d44d8a;
+      --pink-dim: #c07098;
+      --pink-light: #a83070;
+      --text: #3a1a2e;
+      --text-dim: #907088;
+      --mauve: #7a50a0;
+      --learned: #9030a0;
+      --radius: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 2rem;
+    }
+
+    /* ── Header ──────────────────────────────────── */
+    header {
+      width: 100%;
+      background: #f5e8f0;
+      border-bottom: 1px solid #d8a8c8;
+      padding: 0.8rem 1.5rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--pink-light);
+      font-weight: normal;
+    }
+    header .subtitle {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 0.15rem;
+    }
+
+    /* ── Layout ──────────────────────────────────── */
+    .main { width: 100%; max-width: 680px; padding: 0 1rem; }
+
+    /* ── Progress ────────────────────────────────── */
+    .progress-wrap {
+      padding: 1rem 0 0.5rem;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-bottom: 0.35rem;
+    }
+    .bar-track {
+      height: 3px;
+      background: #e8cce0;
+      border-radius: 2px;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--pink);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 0.5rem;
+    }
+    .dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #e8cce0;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .dot:hover { transform: scale(1.4); }
+    .dot.learned { background: var(--learned); }
+    .dot.current { background: var(--pink); box-shadow: 0 0 6px var(--pink); }
+    .dot.learned.current { background: var(--pink); }
+
+    /* ── Context strip ───────────────────────────── */
+    .context-strip {
+      margin-top: 1rem;
+      border-left: 2px solid #d0a0c0;
+      padding: 0 0 0 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .ctx-block { opacity: 0.55; font-size: 0.82rem; line-height: 1.5; }
+    .ctx-block .ctx-who {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.15rem;
+    }
+    .ctx-block .ctx-text { color: var(--text-dim); }
+    .ctx-block .stage-dir { font-style: italic; color: var(--mauve); }
+
+    /* ── Cue box ─────────────────────────────────── */
+    .cue-box {
+      margin-top: 0.75rem;
+      background: var(--card);
+      border: 1px solid #d0a0c0;
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+    }
+    .cue-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.45rem;
+    }
+    .cue-who {
+      font-size: 0.78rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 0.3rem;
+    }
+    .cue-text {
+      font-size: 0.98rem;
+      line-height: 1.65;
+    }
+    .cue-paren {
+      font-style: italic;
+      color: var(--text-dim);
+      margin-bottom: 0.2rem;
+      font-size: 0.88rem;
+    }
+
+    /* ── Sarah's line ────────────────────────────── */
+    .sarah-box {
+      margin-top: 0.75rem;
+      background: var(--card2);
+      border: 1px solid #c898b8;
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      cursor: pointer;
+      position: relative;
+      min-height: 90px;
+      transition: border-color 0.2s;
+    }
+    .sarah-box:hover { border-color: var(--pink-dim); }
+    .sarah-box.revealed { cursor: default; border-color: #d0a0c0; }
+
+    .sarah-inner { transition: filter 0.25s; }
+    .sarah-box:not(.revealed) .sarah-inner {
+      filter: blur(5px);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .reveal-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: rgba(253,245,250,0.80);
+      border-radius: calc(var(--radius) - 1px);
+      pointer-events: none;
+      padding: 1rem;
+    }
+    .sarah-box.revealed .reveal-overlay { display: none; }
+
+    /* hint words shown inside the overlay */
+    .rov-words {
+      font-size: 1.45rem;
+      color: var(--pink-light);
+      font-style: italic;
+      text-align: center;
+      font-weight: bold;
+      text-shadow: 0 0 20px rgba(224,82,154,0.8);
+      line-height: 1.4;
+    }
+    .rov-words:empty { display: none; }
+    /* when words are showing, shrink the "tap to reveal" prompt */
+    .rov-words:not(:empty) ~ .rov-prompt .rov-hint { display: none; }
+    .rov-words:not(:empty) ~ .rov-prompt .rov-label { font-size: 0.72rem; }
+
+    .rov-prompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .rov-label {
+      font-size: 0.88rem;
+      color: var(--pink-light);
+      letter-spacing: 0.05em;
+    }
+    .rov-hint {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+
+    .s-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--pink-dim);
+      margin-bottom: 0.45rem;
+    }
+    .s-who {
+      font-size: 0.78rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      color: var(--pink-light);
+      margin-bottom: 0.3rem;
+    }
+    .s-paren {
+      font-style: italic;
+      color: var(--text-dim);
+      margin-bottom: 0.2rem;
+      font-size: 0.88rem;
+    }
+    .s-text {
+      font-size: 1.02rem;
+      line-height: 1.68;
+      color: var(--pink-light);
+    }
+
+    /* ── Controls ────────────────────────────────── */
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .nav-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    btn, button {
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      padding: 0.55rem 0.9rem;
+      border: 1px solid #d0a0c0;
+      background: #fff0f7;
+      color: var(--text);
+      transition: background 0.12s, border-color 0.12s;
+    }
+    button:hover { background: #ede0ea; border-color: #c090b0; }
+    button:active { background: #f0e0ec; }
+    .btn-prev, .btn-next { flex: 1; }
+    .btn-hint {
+      background: #fce8f4;
+      border-color: var(--pink-dim);
+      color: var(--pink-light);
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .btn-hint:hover { background: #f4d0e8; border-color: var(--pink); color: #fff; }
+    .btn-hint:disabled { opacity: 0.3; cursor: default; }
+    .btn-learned {
+      background: #f8eeff;
+      border-color: #c898c0;
+      color: #8040a0;
+      white-space: nowrap;
+    }
+    .btn-learned.on {
+      background: var(--learned);
+      border-color: var(--learned);
+      color: #fff;
+    }
+    .opt-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .jump-input {
+      width: 72px;
+      background: #fef5fc;
+      border: 1px solid #d0a0c0;
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.5rem 0.5rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      text-align: center;
+    }
+    .jump-input:focus { outline: none; border-color: var(--pink-dim); }
+    .filter-label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      margin-left: auto;
+    }
+    .filter-label input { accent-color: var(--pink); cursor: pointer; }
+    .kbd-hint {
+      font-size: 0.67rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    kbd {
+      background: #fff0f7;
+      border: 1px solid #d0a8c8;
+      border-radius: 3px;
+      padding: 0.1em 0.3em;
+      font-family: monospace;
+      font-size: 0.85em;
+    }
+
+    /* ── Mic / speech check ──────────────────────────── */
+    .mic-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+    .btn-mic {
+      background: #fce8f4;
+      border-color: var(--pink-dim);
+      color: var(--pink);
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .btn-mic:hover { background: #f4d8ec; border-color: var(--pink); }
+    .btn-mic.listening {
+      background: var(--pink);
+      border-color: var(--pink);
+      color: #fff;
+      animation: mic-pulse 1.2s ease-in-out infinite;
+    }
+    .btn-mic:disabled { opacity: 0.35; cursor: default; }
+    @keyframes mic-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,77,138,0.5); }
+      50%       { box-shadow: 0 0 0 7px rgba(212,77,138,0); }
+    }
+    .speech-status {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+    .speech-result {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.9rem 1.1rem;
+      background: #fff0f7;
+      border: 1px solid #d0a0c0;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+    .speech-result.show { display: block; }
+    .sr-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+    .sr-score {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.55rem;
+    }
+    .w-ok   { color: #2a7a2a; }
+    .w-bad  { background: #ffc8d4; color: #900020; border-radius: 3px; padding: 0 3px; }
+    .w-miss { background: #ffe8a8; color: #7a4400; border-radius: 3px; padding: 0 3px; text-decoration: line-through; cursor: pointer; }
+    .w-miss:hover { background: #ffd060; }
+    .sr-hint { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.3rem; font-style: italic; }
+
+    /* ── Dark mode toggle button ─────────────────────── */
+    .dark-toggle-wrap {
+      width: 100%;
+      text-align: center;
+      padding: 1.5rem 0 1rem;
+    }
+    .btn-dark-toggle {
+      background: transparent;
+      border: 1px solid #d0a0c0;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-dark-toggle:hover { background: var(--card); border-color: var(--pink-dim); }
+
+    /* ── Dark mode overrides ─────────────────────────── */
+    body.dark {
+      --bg: #140a12;
+      --card: #1e101c;
+      --card2: #261428;
+      --pink: #e0529a;
+      --pink-dim: #7a2855;
+      --pink-light: #f4a8cc;
+      --text: #f2e8f0;
+      --text-dim: #8a6880;
+      --mauve: #9a70aa;
+      --learned: #b040a8;
+    }
+    body.dark header { background: #0e0610; border-bottom-color: #4a1a38; }
+    body.dark .bar-track { background: #2e1828; }
+    body.dark .dot { background: #2e1828; }
+    body.dark .context-strip { border-left-color: #3a1830; }
+    body.dark .cue-box { background: var(--card); border-color: #3a1830; }
+    body.dark .sarah-box { background: var(--card2); border-color: #4a1a3a; }
+    body.dark .sarah-box.revealed { border-color: #3a1830; }
+    body.dark .reveal-overlay { background: rgba(20,10,18,0.65); }
+    body.dark button { background: #1e101c; border-color: #3a1830; color: var(--text); }
+    body.dark button:hover { background: #28142a; border-color: #4a2040; }
+    body.dark button:active { background: #180c18; }
+    body.dark .btn-hint { background: #280f20; border-color: var(--pink-dim); color: var(--pink-light); }
+    body.dark .btn-hint:hover { background: #381228; border-color: var(--pink); color: #fff; }
+    body.dark .btn-learned { background: #1a0c20; border-color: #4a1a48; color: #c070c0; }
+    body.dark .btn-learned.on { background: var(--learned); border-color: var(--learned); color: #fff; }
+    body.dark .btn-mic { background: #280f20; border-color: var(--pink-dim); color: var(--pink-light); }
+    body.dark .btn-mic:hover { background: #381228; border-color: var(--pink); }
+    body.dark .jump-input { background: #1a0c18; border-color: #3a1830; color: var(--text); }
+    body.dark kbd { background: #1e101c; border-color: #3e1e3a; }
+    body.dark .speech-result { background: #1e101c; border-color: #3a1830; }
+    body.dark .w-ok  { color: #70d070; }
+    body.dark .w-bad { background: #500010; color: #ffa0b0; }
+    body.dark .w-miss { background: #4a3000; color: #ffd080; }
+    body.dark .w-miss:hover { background: #6a4400; }
+    body.dark .btn-dark-toggle { border-color: #3a1830; }
+    body.dark .btn-dark-toggle:hover { background: var(--card); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Inside the Lines</h1>
+  <div class="subtitle">Learning SARAH's Lines</div>
+</header>
+
+<div class="main">
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span id="counter">— of —</span>
+      <span id="learned-count">0 learned</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <div class="context-strip" id="context-strip"></div>
+
+  <div class="cue-box" id="cue-box">
+    <div class="cue-label">Your Cue</div>
+    <div id="cue-who" class="cue-who"></div>
+    <div id="cue-paren" class="cue-paren"></div>
+    <div id="cue-text" class="cue-text"></div>
+  </div>
+
+  <div class="sarah-box" id="sarah-box" onclick="handleBoxClick()">
+    <div class="reveal-overlay">
+      <div class="rov-words" id="hint-text"></div>
+      <div class="rov-prompt">
+        <div class="rov-label">Tap to reveal your line</div>
+        <div class="rov-hint">or press <kbd>Space</kbd></div>
+      </div>
+    </div>
+    <div class="sarah-inner">
+      <div class="s-label">Sarah's Line</div>
+      <div id="s-who" class="s-who"></div>
+      <div id="s-paren" class="s-paren"></div>
+      <div id="s-text" class="s-text"></div>
+    </div>
+  </div>
+
+  <div class="speech-result" id="speech-result">
+    <div class="sr-label">You said</div>
+    <div id="sr-diff"></div>
+    <div class="sr-score" id="sr-score"></div>
+  </div>
+
+  <div class="controls">
+    <div class="mic-row">
+      <button class="btn-mic" id="btn-mic" onclick="toggleMic()">🎤 Say It</button>
+      <button class="btn-learned" id="btn-learned" onclick="toggleLearned()" disabled>&#9744; Mark Learned</button>
+      <div class="speech-status" id="speech-status"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="go(-1)">&#8592; Previous</button>
+      <button class="btn-hint" id="btn-hint" onclick="revealHint()">LINE!</button>
+      <button class="btn-next" onclick="go(1)">Next &#8594;</button>
+    </div>
+    <div class="opt-row">
+      <span style="font-size:0.78rem;color:var(--text-dim)">Jump to line:</span>
+      <input class="jump-input" id="jump-in" type="number" min="1" placeholder="#"
+             onkeydown="if(event.key==='Enter') jumpTo()">
+      <button onclick="jumpTo()">Go</button>
+      <button onclick="shuffle()" title="Shuffle unlearned lines">&#8635; Shuffle</button>
+      <label class="filter-label">
+        <input type="checkbox" id="skip-learned" onchange="applyFilter()"> Skip learned
+      </label>
+    </div>
+    <div class="kbd-hint">
+      <kbd>&#8592;</kbd><kbd>&#8594;</kbd> navigate &nbsp;&middot;&nbsp;
+      <kbd>Space</kbd> reveal &nbsp;&middot;&nbsp;
+      <kbd>L</kbd> toggle learned &nbsp;&middot;&nbsp;
+      <kbd>S</kbd> shuffle &nbsp;&middot;&nbsp;
+      <kbd>R</kbd> record
+    </div>
+  </div>
+</div>
+
+<div class="dark-toggle-wrap">
+  <button class="btn-dark-toggle" id="btn-dark" onclick="toggleDark()">🌙 Dark Mode</button>
+</div>
+
+<script id="md-src" type="text/x-markdown">
+# Inside the Lines
+
+*[lights up on SARAH, FRED, and DANA in bed. Various actors in tableau represent other community members getting ready for their day. **SOUND CUE 1:** Alarm clock goes off. **SOUND CUE 2:** Pleasant music underscores morning routine.]*
+
+**DEVICE 1-3**
+Five o’ clock, time to wake up! Good morning, citizens! Time to prepare for work! Please recite
+the Code of Conduct.
+
+**SARAH, FRED, DANA COOPER**
+(Cheerfully) I will work hard every day to be a productive member of society. I will trust, and
+follow my life-plan, and I will always be happy.
+
+**DEVICE 1**
+Thank you, Sarah! Let’s start our morning: please apply the foundation to your face.
+
+**SARAH**
+The liquid or the powder?
+
+**DEVICE 1**
+Today will be sunny, so you will be wearing the liquid foundation with SPF-30.
+
+*[scans SARAH for proof of applying foundation]*
+
+**DEVICE 2**
+Good Morning, Fred. Today you will have a romantic dinner with Sarah. Please be sure to tie a
+Windsor knot.
+
+**FRED**
+You betcha!
+
+**DEVICE 1**
+As you know, Sarah, today is the first day of the new school-year, so the goal for today’s look is
+to be “approachable” to your teachers and students.
+
+**SARAH**
+Should I apply the bronze or the silver eye-shadow?
+
+**DEVICE 1**
+Bronze.
+
+*[SARAH applies the eyeshadow.]*
+
+**DEVICE 1**
+Bing!
+That is too much, Sarah. Wash it off, and try again with gentle hands.
+
+**DEVICE 3**
+Dana, you have one hour before this morning’s studio broadcast. Please whiten your teeth now.
+
+**DANA COOPER**
+What are today’s top stories?
+
+**DEVICE 3**
+Today’s report will focus on the arrival of Earhart’s comet…
+
+*[Word collage begins with DEVICES barraging SARAH, FRED, and DANA with instructions.]*
+
+**DEVICE 1**
+Apply the light pink lipstick next
+
+**DEVICE 2**
+You will order one coffee with milk and no sugar for yourself, and one coffee with extra sugar
+and extra cream for Sarah. It will brighten her morning.
+
+**DEVICE 3**
+Then community safety reminders, including the importance of traffic safety with the start of
+the new school year…
+
+**DEVICE 2**
+Adjust your tie
+
+**DEVICE 3**
+Smile for the camera, it’s important to establish trust with your audience
+
+**DEVICE 1**
+Wear your cardigan today, it will make you appear more approachable to your new class.
+
+*[SARAH applies a yellow cardigan.]*
+
+**SARAH**
+There. Am I approachable now?
+
+**DEVICE 1**
+More than you were before.
+
+**DEVICES 1-3**
+Don’t be late.
+
+*[Lights shift, SARAH walks to school. She sees a crowd of children arguing]*
+
+**ELIZABETH**
+Let’s play Life-Plan!
+
+**JOSHUA**
+Girls, YOU prepare dinner, and I’ll come home from work and eat it.
+
+**ELIZABETH**
+Joshua, you have to be my assigned partner!
+
+**JOSHUA**
+Ew no! I’m not meant to do that!
+
+**ELIZABETH**
+Why not?
+
+**JOSHUA**
+Because I’m obviously meant to be Emma’s life partner. Emma, what’s for dinner?
+
+**EMMA**
+Meatloaf!
+
+**ELIZABETH**
+But then I’m just a single...
+
+**KATE**
+I’ll be your assigned partner, Elizabeth!
+
+**JOSH**
+You can’t do that!
+
+**KATE**
+Why not?
+
+**EMMA**
+It has to be boy/girl. It can’t be girl/girl. That’s not how it works.
+
+**KATE**
+You’re lying!
+
+**JOSHUA**
+Nope. Sorry. You have to play something different. Or you can both be singles with hundreds of
+cats.
+
+**ELIZABETH**
+NO!
+
+*[**SOUND CUE 3:** News Cast theme music. The children turn their attention to the video billboard.]*
+
+**DEVICE 3**
+Dana, remember to look confident. The people are relying on you to tell them everything they
+need to know. We’re live in 5, 4, 3, 2….
+
+**DANA COOPER**
+Good morning, CITIZENS.
+
+**DEVICE 3**
+Bing
+Enunciate.
+
+**DANA COOPER**
+*(Taking care to perfectly pronounce each word.)*
+Today on Fact Based Media we have a breathtaking announcement. This evening there will be a
+very rare sighting of Earhart’s Comet as it passes through our orbit. This celestial phenomenon
+will not pass our planet again for another 1200 years, but thanks to our dear friends at Life Corp
+you will be able to watch a livestream of its track on your devices starting at 8:38 p.m. What
+would we do without them?
+
+*[DANA chuckles]*
+
+**EMMA**
+(To Elizabeth) What’s a comet?
+
+**DANA**
+A reminder to all of our community members, today marks the first day of the new school year.
+Our friends at Life Corp wish all students a wonderful first day of school.
+
+**KATE**
+That’s US!
+
+**DANA**
+And now for our exceptional citizen report. Today we remember Dan Hartstone, who held a
+perfect record for 70 years of waking up at precisely 4:00 a.m. He was efficient in his daily
+commute, and was never late a day in his life. After marrying his assigned life-partner at age 22,
+he fathered 3 children who went on to develop emerging technologies for LifeCorp. Dan’s
+contributions to our community included delivering food to the elderly, and keeping the tidiest
+front lawn. Thank you Dan Hartstone for your productive and important life
+
+*[SARAH calls the children into class.]*
+
+**SARAH**
+Children, please take your seats before the bell rings!
+
+*[CHILDREN run into the building. FRED enters, carrying a paper coffee cup.]*
+
+**FRED**
+Good morning Sarah, I brought you coffee, extra cream, extra sugar.
+
+*[SARAH gives FRED a quick kiss on the cheek]*
+
+**KIDS**
+OoooOOoooOOoooooo!!!
+
+**SARAH**
+(happily) Wow! Thanks, Fred, you’re the best!
+
+**FRED**
+It’s meant to brighten your morning.
+
+**SARAH**
+My device says we’re meant to have dinner tonight.
+
+**FRED**
+*(looking down at his device)*
+Yes! After we watch the comet together, we will go to dinner.
+
+**SARAH**
+Sounds perfect.
+
+**DEVICE 2**
+Bing!
+Fred, you are already running late. We shall waste no time dawdling.
+
+**FRED**
+Anyways, I must run. I am already running late, we shall waste no time dawdling. See you
+tonight!
+
+*[FRED waves farewell to SARAH and exits. SARAH sips on her coffee and clearly doesn’t like it.]*
+
+**SARAH**
+*(grimaces)*
+Ugh…. that’s too sweet.
+
+*[**SOUND CUE 4:** School bell rings]*
+
+**DEVICE 1**
+Bing
+Sarah, you are also late. Your students are waiting!
+
+**SARAH**
+I love the first day of school.
+
+*[SARAH enters the building, lights shift to illuminate classroom]*
+
+**SARAH**
+Hello Class, my name is Miss Harper and I will be your Kindergarten teacher. Let’s take
+attendance… Elizabeth?
+
+**ELIZABETH**
+Here!
+
+**SARAH**
+Joshua?
+
+**JOSHUA**
+Here!
+
+**SARAH**
+Kate?
+
+**KYLE**
+Here!
+
+**SARAH**
+Emma?
+
+**EMMA**
+Here!
+
+**SARAH**
+Molly?
+
+**MOLLY**
+Here!
+
+**SARAH**
+Sadie?
+
+**SADIE**
+Here!
+
+**SARAH**
+Ann?
+
+**ANN**
+Here!
+
+**SARAH**
+Excellent! Today we will be learning about device installation and life-plans. I see one of us
+already has his device. When did you get yours, Molly?
+
+**MOLLY**
+On my fifth birthday. August 9th.
+
+**SARAH**
+That was very recently! How do you like your new device?
+
+**MOLLY**
+He’s bossy.
+
+*[The children laugh]*
+
+He tells me what to do almost every minute of the day.
+
+**SARAH**
+And do you follow his advice?
+
+**MOLLY**
+Most of the time. When I don’t, he makes a lot of noise, and then my mom asks me what I’m up
+to. He just gets me into trouble!
+
+**SARAH**
+I used to think that way too, but don’t worry. You won’t feel that way forever. Now, does anyone
+know at what age you receive your official Life Plan?
+
+**SADIE**
+It is when you turn fifteen! My mom just talked about it with my big sister yesterday. Now
+LifeCorp will help her plan her life, so she never makes any mistakes.
+
+**SARAH**
+Sadie, I’m impressed that you knew that already! Does anyone know how your LifePlan works?
+
+**JOSHUA**
+Well, I know that you have to go to LifeCorp, and they look at all of the data they got from your
+device for ten years, and from that they make your life-plan.
+
+**ANN**
+And then, you have to do everything that your LifePlan says forever. It tells you what job you’ll
+have, where to live, and everything that you are meant to do.
+
+**ELIZABETH**
+My mom says that your LifePlan is designed for your personal strengths. It maps out your life so
+you don’t make mistakes.
+
+**SADIE**
+...Ms. Harper, what would happen if someone didn’t listen to their device?
+
+**SARAH**
+I don’t understand.
+
+**SADIE**
+I mean, what if someone just didn’t get one? Or just didn’t do what it said to do?
+
+**DEVICE 1**
+bing!
+Reassure the child…
+
+**SARAH/DEVICE 1**
+Sadie, our devices not only help us, but help our community as a whole. It would be extremely
+selfish of you not to listen to its advice.
+
+**EMMA**
+But how do you know? Have you ever ignored yours, Miss Harper?
+
+**KATE**
+Yeah, have you Miss Harper?
+
+**SARAH**
+Of course not. Would you all like to see how a device works?
+
+*[The children show their excitement.*
+
+*SARAH removes her device and passes it around the room. The students take turns pressing buttons, swiping pages.]*
+
+**ANN**
+Wow, it’s heavier than I thought. (she passes)
+
+**JOSHUA**
+It looks just like my dad’s! Except his is white. He says that all doctors wear white ones.
+
+*[he passes it toward EMMA, but KATE grabs at it]*
+
+**EMMA**
+Kate it’s meant to be my turn!
+
+**KATE**
+Nu-uh it’s meant to be my turn, Joshua was passing it to me.
+
+**SARAH**
+Children---
+
+**EMMA**
+We have to go around the circle!
+
+**KATE**
+That’s not a rule!
+
+*[As they struggle for the device, KATE and EMMA start pushing buttons and bending wires, finally, the device cracks. **SOUND CUE 5:***
+
+*Device breaks. Both children freeze in horror.]*
+
+**SARAH**
+Oh...it’s alright children. I’m sure Life Corp replaces devices all the time! I will take it over after
+class.
+
+**ELIZABETH**
+Ms. Harper, when is snack?
+
+*[Lights dim, shift to SCENE IV]*
+
+**SARAH**
+Hello Principal Ross, are we meant to walk together?
+
+**PRINCIPAL ROSS**
+*(checking device)*
+I believe we are, right after we indulge ourselves with 100ml of water.
+
+*[both pick up water bottle]*
+
+**SARAH**
+Are you meant to watch the comet tonight? I have heard it will be a great educational
+opportunity.
+
+**PRINCIPAL ROSS**
+*(still looking down at her device)*
+No, I will not be seeing the comet tonight. I am meant to go grocery shopping instead. How has
+your day been?
+
+**SARAH**
+Actually, something rather alarming happened today. One of my students asked me what would
+happen if we didn’t listen to our devices. I told her that she shouldn’t even consider ignoring it.
+Should I be worried about her?
+
+**PRINCIPAL ROSS**
+That is alarming, but it’s completely normal. Children don’t have life plans of their own yet, and
+so they sometimes ask uncomfortable questions. They really don’t know any better.
+
+**SARAH**
+….Children can be so silly. I don’t know what she was thinking, Life without a device must
+be...different.
+
+**PRINCIPAL ROSS**
+Without our devices, our society would not be able to function, and our people wouldn’t know
+how to live.
+
+*[SARAH considers for a moment.]*
+
+**SARAH**
+I’m actually very worried, Principal Ross; while I was passing my device around this morning, a
+student broke it. I sent it to Life Corp. I hope they give it back soon.
+
+**PRINCIPAL ROSS**
+Don’t worry, my brother-in-law works in construction, and that happens all the time. Life Corp
+will have your new device ready before school tomorrow!
+
+**SARAH**
+Oh, that’s a huge relief!
+
+*[They both exit chatting. Lights shift to news desk.]*
+
+**DEVICE 3**
+We’re live in 5, 4, 3, 2….
+
+*[**SOUND CUE 6:** News Report intro music]*
+
+**DANA COOPER**
+Good afternoon Community, Remember, this evening we will be witnessing Earhart’s comet, a
+once in a lifetime opportunity. When watching, remember that it may be cold outside, so wear
+your assigned attire!
+
+*[FRED is seen onstage looking at his device, adjusting his arm in small fractions.]*
+
+**DEVICE 2**
+bing!
+Hold your device parallel to your torso for an optimized view of the comet. Keep looking down
+so you don’t miss it!
+
+**SARAH**
+Sorry I’m late, Fred.
+
+**FRED**
+Where have you been?
+
+**SARAH**
+One of the students broke my device in class today. It’s been throwing my whole day off! I’m
+waiting for Life Corp to bring me a new one.
+
+*[Other citizens enter to watch the comet. They gather together, looking at their devices. SARAH and FRED are holding hands.]*
+
+**FRED**
+Here, Sarah. You can look on my device.
+
+*[FRED moves his arm so the device is between him and SARAH.]*
+
+**DEVICE 2**
+Bing!
+Hold your device parallel to your torso for an optimized view of the comet.
+
+*FRED moves his arm back to its original spot. SARAH tries to look at FRED’s device over his shoulder.]*
+
+**SARAH**
+Fred, I can’t see.
+
+*[Irritated, SARAH looks around her, then looks up at the sky and gasps. **SOUND CUE 7:** Music, lights shift]*
+
+**SARAH**
+Fred, are you seeing this?! Look at the way the sky turns all those colors.
+
+**FRED**
+I can’t see that on my optical view.
+
+**SARAH**
+(sighs) I wonder what it would be like to be able to go wherever you wanted.
+
+**FRED**
+Hahah, you’re so silly
+
+*[Citizens move on.]*
+
+Now that that’s done, we’re meant to go to dinner.
+
+**SARAH**
+But... the comet’s still in the sky.
+
+**FRED**
+But the video feed is over. It’s time for dinner now.
+
+*[Ensemble transforms the set into a dinner scene. FRED pulls out SARAH’s chair.]*
+
+**SARAH**
+Thank you.
+
+**FRED**
+You look lovely tonight. That dress is very… ladylike.
+
+**SARAH**
+Thank you Fred.
+
+*[Waiter comes over]*
+
+**WAITER**
+I am meant to tell you tonight’s special. This evening we are pairing a medium-rare steak with a
+local beer.
+
+**FRED**
+Yes, I am meant to order that, and Sarah is meant to have the caesar salad and a glass of Pinot
+Grigio.
+
+**SARAH**
+Actually, that steak sounds really good! I think I’d like to have that as well, thank you.
+
+*[FRED’s smile twitches. He glances at his device, then back at the waiter.]*
+
+**FRED**
+*(To the waiter)*
+She’ll have the caesar salad, and a glass of wine.
+
+*[The WAITER exits.]*
+
+So Sarah, how was your day?
+
+**SARAH**
+Pretty good. It was the first day of school. The kids seem sweet.
+
+**FRED**
+That’s nice.
+
+**SARAH**
+I like your tie.
+
+**FRED**
+Thank you. Let us recite the Code Of Conduct before the meal gets here.
+
+*[Sarah sighs]*
+
+**SARAH**
+Okay...
+
+*[They join hands, as if saying grace. The entire ENSEMBLE including the waiters all stop what they’re doing to recite the code with them.]*
+
+**BOTH**
+I will work hard every day to be a productive member of society. I will trust, and follow my
+life-plan, and I will always be happy.
+
+**FRED**
+Sarah, …. I got an alert tonight saying that I am supposed to propose to you. I’m so excited!
+Here it goes.
+
+*[FRED clears throat and reads off his*
+
+*device in a monotone manner.]*
+
+**FRED/DEVICE 2**
+Sarah Harper, I am meant to spend the rest of my life with you and I couldn't be more ecstatic. I
+bought you this expensive ring to show our love….
+
+**FRED**
+Now give future spouse ring. Oh... right… here.
+
+**SARAH**
+Wow! Uh. Thanks Fred. I had no idea this was meant to happen today, but I’m sure I’m meant to
+accept. I mean: yes. Yes, I accept!
+
+**FRED**
+Great! Tomorrow we are meant to go and let my mother know about this joyful occasion.
+
+*[Lights shift, FRED’S MOTHER and FATHER rush forward to embrace them]*
+
+**MOTHER**
+Oh my, an engagement notification after only two months! Life Corp must be really confident
+that you two are meant to be together.
+
+**FRED**
+Did you see the comet last night? How clever of Life Corp to plan our engagement during such a
+special event.
+
+**MOTHER**
+Indeed! Did you see all the pop-up features on your device Sarah? Did you know you could
+zoom in?!
+
+*[She doesn’t respond.]*
+
+Sarah….?
+
+**SARAH**
+Oh. Well, my device was broken, so I just watched the real thing.
+
+**MOTHER**
+I… don’t understand.
+
+**SARAH**
+I looked up! The comet was amazing, the way it soared across the sky! It made me think of space
+travel... I wonder what it would be like to---
+
+**FRED**
+(chuckling) Sarah, you sound like one of your students.
+
+**MOTHER**
+Sarah dear, you won’t be having much time to go to Mars. Now that you’re engaged, there will
+be a lot of new responsibilities. The wedding! The GRANDCHILDREN!
+
+**SARAH**
+I know that.… I was only…. Don’t you think we could do some exploring before we do those
+things? Like in Japan, they eat their food with chopsticks and--
+
+**MOTHER**
+Oh that’s so silly... what’s the point in travel? They’re just doing the same thing over there that
+we’re doing right here. Living productive lives. Now, let’s see that ring!
+
+*[SARAH reaches out with her left hand so that the family can admire the ring.]*
+
+**MOTHER**
+It’s lovely! How many children are you meant to have?
+
+**SARAH**
+Oh… I don’t know. I haven’t gotten my device back yet, so I haven’t looked at our new
+Combined Life Plan.…
+
+**FRED**
+(Speaks with pride) Well I HAVE! In two years, we’re meant to have our first daughter, whose
+name will be Abigail. Then twins! Alex and Jake! So Sarah will obviously be home with them at
+that point…
+
+**SARAH**
+What?
+
+**MOTHER**
+Before you know it, your three children will be receiving their own devices and life plans. It just
+touches my heart!
+
+**FRED**
+Oh Sarah, just imagine our kids getting paired up with their life partners just like us. Their whole
+lives will be perfect, just like ours. Beautiful, isn’t it?
+
+*[They continually speak as SARAH looks disconnected. lights fade. Lights up on SARAH in bed. There is a loud knocking at the door. SARAH stumbles out of bed and answers the door. There is a LC WORKER with a small package.]*
+
+**LC1**
+Good morning! Are you Ms. Harper?
+
+**SARAH**
+(groggily) Yes…
+
+**LC1**
+I have a package from Life Corp!
+
+**SARAH**
+Oh- my device! I nearly forgot.
+
+**LC1**
+Here you go. Can you just sign here saying that you received your new device?
+
+*[She signs]*
+
+Thank you! Have a productive day!
+
+*[LC1 exits. SARAH carefully opens the package, looks down at her device, and after a brief pause, turns it on.]*
+
+**DEVICE 1**
+Good morning, Sarah! We are running 10 minutes late. Time to prepare for work! Please recite
+the Code of Conduct.
+
+**SARAH**
+But-- um- ok. I will work hard everyday to be a productive member of society. I will trust, and
+follow my life-plan, and I will always be happy.
+
+**DEVICE 1**
+Let’s start our morning: Apply the powder foundation to your face.
+
+*[scans SARAH for proof of applying foundation]*
+
+**DEVICE 1**
+Bing
+Your makeup lines are unsightly. Make sure to blend where your jawline meets your neck.
+
+*[She does]*
+
+Now apply the light pink lipstick.
+
+*[SARAH picks up lipstick, but stops.]*
+
+**SARAH**
+This is ridiculous. If I’m already late, then let’s just skip it!
+
+**DEVICE 1**
+bing!
+Please apply the light pink lipstick.
+
+*[SARAH looks uncomfortable, but still does not put on lipstick.]*
+
+bing!
+Sarah, apply the light pink lipstick.
+
+*[SARAH puts the lipstick down and walks out the door. **SOUND CUE 8:** News studio background sounds. DANA enters onto her platform DSL holding a clipboard]*
+
+**DANA**
+*(vocalizing)*
+Red leather yellow leather red leather yellow leather…
+
+**DEVICE 3**
+Dana, your next broadcast will go live in ten minutes. Make sure to practice your fricatives.
+
+**DANA**
+Friendlyy Francis found his device devoid of data…. Friendly Francis found his device devoid of
+data…
+
+**DEVICE 3**
+Very good. Now it’s time to rehearse your first story of the evening.
+
+**DANA**
+*(reading from clipboard)*
+Good evening fellow citizens! Tonight’s top story is a public service announcement. Recent
+waste water testing indicates that localized pollution has rendered swimming unsafe for…
+
+**DEVICE 3**
+bing!
+Incorrect. Please review the script for tonight’s top story.
+
+**DANA**
+*(clearly confused)*
+But… it says it right here. “Localized pollution has rendered swimming unsafe for…”
+
+**DEVICE 3**
+bing!
+Please reference your device for the updated script.
+
+**DANA**
+*(looks at device and cross renferences clipboard)*
+Oh. But this is completely different…? Does that mean the water is safe for swimming now?
+
+**DEVICE 3**
+bing!
+Your friends at Life Corp thank you for delivering tonight’s updated broadcast.
+
+*[Lights fade. LIGHTS UP on SARAH and FRED watching the news together on the couch.]*
+
+**DANA COOPER**
+This is a public service announcement reminding our citizens to treat our planet with care. Some
+individuals need a little reminder about keeping our community clean. So, if you see members
+of the community improperly disposing of trash, especially Tom Hopkins, Clare Burstein, and
+Martha Walkford, please report them! Thank you!
+
+**FRED**
+Sarah, I’m meant to ask you what is bothering you? You’ve been acting strange all evening.
+
+**SARAH**
+
+*[Dazed] Hmm? Sorry, I’ve just been thinking.*
+
+**FRED**
+What about?
+
+*[She doesn’t respond. FRED takes her hand.]*
+
+Sarah, I’m going to be your husband, your life plan is my life plan.
+
+**SARAH**
+...When you think about our future together, what do you see?
+
+**FRED**
+*(laughing)*
+Well I haven’t memorized our whole Life Plan yet, but let me pull it up!
+
+**SARAH**
+No- I mean, what do you….hope for?
+bing!
+
+**FRED**
+What?
+
+**SARAH**
+What if there’s more than what our devices show us?
+bing!
+
+**FRED**
+I don’t understand.
+
+**SARAH**
+…. nevermind.
+
+**FRED**
+Did I say something to upset you?
+
+**SARAH**
+....Why did you get me coffee on the first day of school?
+
+**FRED**
+What has that got to do with anything?
+
+**SARAH**
+Please. Just answer the question. Why did you bring me coffee?
+
+**FRED**
+My device told me to, of course. It said that you would think it was romantic.
+
+**SARAH**
+I thought so.
+
+**FRED**
+Did I get it wrong? More sugar next time?
+
+**SARAH**
+I think I’m meant to go home and get some rest. Good night.
+Bing!
+
+*[FRED leans in for a kiss, she takes her bag and leaves.]*
+
+**DEVICE 1**
+It appears that you are having difficulty following your life plan, not to worry, your friends at
+Life Corp have been contacted!
+
+*[Lights down. Lights up on stage at Life Corp. SARAH is seated next to LIFE CORP WORKERS*
+
+*who are interrogating her.]*
+
+**LC 1**
+Good morning Miss Harper. Do you understand why we’ve asked you here to Life Corp today?
+
+**SARAH**
+No... I don’t.
+
+**LC 2**
+It has come to our attention that you have not been making good use of your new device.
+
+**SARAH**
+I guess I’m just not satisfied with my life plan.
+
+**LC 3**
+(chuckling) Oh Sarah, you won’t feel that way forever. Why don’t you give your life plan a try?
+
+**SARAH**
+Because it’s my life.
+
+**DEVICE 1**
+bing!
+
+**LC 1**
+You know, Sarah, our devices not only help us, but help our community as a whole. It would be
+extremely selfish of you not to listen to its advice.
+
+**SARAH**
+But what if the advice is wrong?
+
+**DEVICE 1**
+Bing!
+
+**LC 2**
+What about Fred? Don’t you want him to be happy?
+
+**SARAH**
+Of course I do, but I don’t think I can make him happy. We want different things.
+
+**LC 3**
+He’s very excited for the life we’ve planned out for the two of you. He told us he’s worried about
+you. We’re all worried about you, Sarah.
+
+**SARAH**
+You talked to Fred?
+
+**LC 1**
+You have to keep in mind that your actions will affect his life, too.
+
+**SARAH**
+I don’t want to hurt him, but we don’t belong together. I’m sure you can come up with some
+way to make him happy. Or he can decide that for himself.
+
+**DEVICE 1**
+bing!
+
+**LC 2**
+That negates the entire purpose of the device, Sarah.
+
+**SARAH**
+But what does the device really do that we can’t do ourselves?
+
+**DEVICE 1**
+bing!
+
+**LC 3**
+It removes human error.
+
+**LCI 1**
+If people don’t make decisions,
+
+**LCI 1, 2, & 3**
+they can’t make the wrong ones.
+
+**LCI 1**
+Don’t you want to be a productive member of society?
+
+**LC2**
+Don’t you want to be happy?
+
+**LC3**
+Don’t you want stability?
+
+**LC1**
+A job?
+
+**LC2**
+Don’t you want to be a role model to your students?
+
+**LC3**
+Someone to spend your life with?
+
+**LC1**
+Kids?
+
+**LC1, 2, & 3**
+A life that means something?
+
+**LC1**
+If you don’t follow your life plan, we can’t promise you any of these things.
+
+**SARAH**
+I don’t know anymore. I can’t tell the difference between what I want, and what you’ve told me
+to want.
+
+**LC2**
+Okay, Sarah. You want to make decisions?
+
+**LC 1, 2, & 3**
+We hope you make the right ones.
+
+*[Lights Down. Lights up on SARAH arriving to work. FRED is waiting for*
+
+*her holding a coffee cup.]*
+
+**FRED**
+(Holding out cup to her). I put more sugar in it today.
+
+**SARAH**
+(Smiling, taking the cup) Thank you. (slowly) I know you talked to Life Corp.
+
+**FRED**
+*(Showing remorse)*
+I’m sorry. It’s what I was supposed to do
+
+**SARAH**
+It’s okay, Fred. You were just doing what you were told.
+
+**DEVICE 1**
+Very good, Sarah. Now invite him to dinner tonight. You and Fred are meant to resolve your
+differences over a romantic meal.
+
+**SARAH**
+Do you want to marry me? Is that what you really want Fred?
+
+**FRED**
+We are meant to, it’s what my life plan has told me. But… it feels like… this is so strange… it’s
+almost like the life plan doesn’t feel…
+
+**DEVICE 2**
+Bing!
+
+**SARAH**
+…What? Doesn’t feel what?
+
+**DEVICE 1**
+Bing!
+
+**SARAH**
+I care about you. But, I don’t think I can live my life by someone else’s plan anymore.
+
+**DEVICE 1**
+Bing! Bing! Bing!
+
+*[SARAH removes her device, and slams it into her purse. The lights illuminating DEVICE 1’s box flicker out.]*
+
+**SARAH**
+Do you understand?
+
+*[FRED nods, and starts to walk offstage, then turns back to her.]*
+
+**FRED**
+I did it on my own, you know.
+
+**SARAH**
+What?
+
+**FRED**
+The coffee. I brought it on my own this time.
+
+**SARAH**
+...Why?
+
+**FRED**
+Because I wanted to.
+
+**DEVICE 2**
+Bing!
+
+*[FRED glances down at his device in surprise, then back at SARAH. He exits.*
+
+*Lights up in classroom]*
+
+**SARAH**
+Students, we’re going to close our day with an art lesson.
+
+**KATE**
+Should I get the coloring templates?
+
+**SARAH**
+No Kate, this will be a choice activity. You can draw anything you’d like.
+
+*[There is a pause. The students don’t know how to respond.]*
+
+**JOSHUA**
+Why?
+
+**SARAH**
+Sometimes it’s nice to think for ourselves.
+
+**ELIZABETH**
+Miss Harper, can I draw a football?
+
+**SARAH**
+Why not? Go right ahead.
+
+**ANN**
+Ms. Harper, I made a mistake! I went outside the lines. Can I have a new piece of paper?
+
+**SARAH**
+I think your drawing looks great, Ann. Why not keep going? We can always turn our mistakes
+into something new.
+
+*[SARAH walks over and looks above*
+
+*STUDENTS shoulder. PRINCIPAL ROSS enters room and looks over ELIZABETH’s shoulder]*
+
+**PRINCIPAL ROSS**
+*(clears throat)*
+Good afternoon, Molly. What is this you’re working on?
+
+**MOLLY**
+Ms. Harper said we can draw whatever we want! I’m drawing a pickle with teeth!
+
+**SADIE**
+This is me as a doctor. With cookies! I can give them to my patients so they feel better.
+
+**JOSHUA**
+I just made a whole bunch of lines! I don’t know what it is yet...maybe a monster. Or a shoe?
+
+**PRINCIPAL ROSS**
+Ms. Harper, may I speak with you for a moment?
+
+*[EMMA pops up in between them.]*
+
+**EMMA**
+Look, Principal Ross: It’s a pretzel car!!
+
+*[EMMA makes motor noises and “drives” herself back to her seat. They step aside.]*
+
+**PRINCIPAL ROSS**
+What is the purpose of this lesson?
+
+**SARAH**
+To give them time to think for themselves. To explore possibilities.
+
+*[PRINCIPAL presses a button or two on her device.]*
+
+**PRINCIPAL ROSS**
+Sarah, I’m sorry to tell you that as of this moment, your services will no longer be required at
+District Elementary School 1A. We are concerned about the model that you are setting for young
+children, and encourage you to seek counselling with Life Corp to determine a more suitable
+direction. Thank you for your service.
+
+*[Lights down. Lights up on DANA COOPER and LC1, LC2, and LC3]*
+
+**DANA COOPER**
+Good evening, everyone. We are excited to be the first to announce Life Corp’s newest
+innovation. We have the privilege to welcome three technicians from Life Corp who will tell us
+all about the features of the new and improved device.
+
+**LC1**
+Thank you. The most noticeable improvement we’ve made is that this version is virtually
+unbreakable.
+
+**LC2**
+Instead of a clunky attachment, this latest version is implanted into the frontal lobe of the brain.
+No more worries about losing, damaging, or misplacing your life plan.
+
+**LC3**
+That’s right. And not only will your new device be permanently implanted, it will also be
+distributed shortly after birth. You’ll never have to think about it.
+
+**DANA COOPER**
+Wow, that sure does sound swell. How fascinating! What brought about these amazing
+changes?
+
+**LC1**
+Well, Dana, these changes came out of a need to address simple human error. Some members of
+our community have been deviating from their assigned Life Plans as a direct result of their
+device breaking.
+
+**DANA COOPER**
+Ah, you must mean Sarah Harper, the kindergarten teacher who violated the terms of her life
+plan. Can you offer any insight into this troubling matter?
+
+**LC3**
+I’m so glad you brought that up, Dana. We’re not worried in the slightest. Everyone wants to be
+happy…
+
+**LC1**
+But, unfortunately, some people allow deviations to get the better of them.
+
+**LC2**
+We want to ensure that all citizens can follow the code without question.
+
+**LC3**
+Which is why we’ve made these upgrades. You can sleep soundly at night knowing that your
+life plan is secure.
+
+**DANA COOPER**
+Is there any hope for individuals like Sarah? Is she beyond saving?
+
+**LC1**
+Oh, there is certainly hope. If she were to change her mind, we would welcome the opportunity
+to help get her life on track.
+
+**DANA COOPER**
+Well, I think I speak for everyone when I say that it’s such a relief to know that our lives are in
+your hands.
+
+*[Lights down. Lights up on SARAH in bed who is having a nightmare.]*
+
+**LC 2**
+Simple human error.
+
+**LC 3**
+Some people allow deviations to get the better of them.
+
+**PRINCIPAL ROSS**
+Our society would not be able to function!
+
+**ELIZABETH**
+I hear they live all alone and with hundreds of cats
+
+**MOTHER**
+The wedding! The GRANDCHILDREN!
+
+**JOSHUA**
+You have to do everything that your LifePlan says forever.
+
+**FRED**
+…I did it on my own
+
+**MOTHER**
+Now, let’s see that ring!
+
+**LC 1**
+Everyone wants to be happy
+
+**PRINCIPAL ROSS**
+Your services will no longer be required
+
+**DANA COOPER**
+Is she beyond saving?
+
+**LC3**
+Your life plan is secure.
+
+**ENSEMBLE**
+5:00, Time to wake up!
+
+**SARAH**
+Call Life Corp. Tell them I am ready to talk.
+
+**DEVICE 1**
+… Your friends at Life Corp. have been notified.
+
+*[SARAH exits. Lights down. Lights up on SARAH and LC workers 1 & 2]*
+
+**SARAH**
+Thank you for giving me this chance.
+
+**LC2**
+It’s good that you came to us, and are willing to set things right.
+
+**SARAH**
+Trust me. I just want all of this humiliation to end. …What do you want me to say?
+
+**LC1**
+Make it clear that you regret your decisions.
+
+**LC 2**
+That you were selfish, and that you want to get your life back on track.
+
+**SARAH**
+I’ll do anything… to get my life back.
+
+*[Lights shift to news scene. SARAH joins DANA COOPER center.]*
+
+**DANA COOPER**
+Thank you for agreeing to do this interview, Sarah.
+
+**SARAH**
+I’m so nervous.
+
+**DEVICE 3**
+Use your professional expertise to reassure her.
+
+**DANA COOPER**
+You know, there’s really nothing to it. Life Corps provides all the scripts, so you just read from
+your device and we’ll take care of the rest!
+
+*[DANA crosses to her platform. Sound Cue 9: News program]*
+
+**DANA COOPER**
+Good evening, citizens! We are live in the studio today with this special report. Some of you
+may recall the tragic case of Sarah Harper, the wayward kindergarten teacher. This morning, we
+received a call from Life Corp informing us that Sarah has requested their help in getting her life
+back on track. As part of her rehabilitation, she’s asked for the opportunity to apologize for all of
+the disruption she’s caused. Welcome, Sarah.
+
+**SARAH**
+Thank you for having me, Dana.
+
+**DANA COOPER**
+The community is so pleased that you have chosen the selfless path and are ready to accept the
+help you need. Your community is listening: what would you like to say?
+
+*[SARAH faces the camera]*
+
+**SARAH**
+I am so sorry to anyone I may have upset by my actions. I realize now that the things I say and
+do affect my community. My deviation from my life plan began when my device broke. While
+it was being repaired, I was forced to make some choices for myself. They were small at first,
+but even choosing what color lipstick I wore made me realize… that my life was not my own.
+
+**DANA COOPER**
+*(considers this)*
+Interesting… can you say more about that?
+
+**DEVICE 3**
+bing!
+End the video feed.
+
+*[DANA ignores her device. SARAH looks to DANA, who nods for her to continue.]*
+
+**SARAH**
+Living as someone tells you is not living.
+
+**DEVICE 3**
+bing!
+ALERT: End the video feed.
+
+**DANA COOPER**
+…What makes you say that?
+
+**SARAH**
+I thought I was meant to be a happy, productive member of society, but my happiness is
+something I have to determine on my own.
+
+**DEVICE 3**
+bing!
+ALERT: End the video feed.
+
+**SARAH**
+We get so used to one specific idea of what it means to be successful. Generations go without
+questioning the plan; we spend so much time looking down at our screens, waiting in line for our
+futures that we forget to live. We forget to look up.
+
+**DEVICE 3**
+bing!
+ALERT: End the video feed.
+
+*[Beeping increases as devices all over the studio signal the*
+
+*system error. SARAH has to shout to be heard over the noise]*
+
+**SARAH**
+Don’t hand your power over to someone else. It’s okay to make mistakes, to live outside the
+lines.
+
+*[LC executives enter from both wings, closing in on the studio. SARAH rises from her chair.]*
+
+I don’t know how much time I have: I don’t know if Life Corp will let me go, if my community
+will turn its back on me, if I’ll ever be seen again. So if I can say one last thing to you it is this:
+tomorrow morning, look up from you screens. YOU HAVE TO LOOK UP! WATCH THE
+SUNRISE!
+
+*[Blackout. Light slowly fades on an empty stage. The cyc and lighting is a soft orange glow. Slowly, ensemble members enter the stage, looking down at their screens. Some of them look up, and appreciate the sights.]*
+
+</script>
+
+<script>
+// ── Parse markdown ──────────────────────────────────────────────────────────
+function parseMd(text) {
+  const lines = text.split('\n');
+  const elements = [];
+  let pendingStage = null;
+
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (!t) continue;
+
+    // Title
+    if (t.startsWith('# ')) {
+      if (pendingStage) { elements.push({type:'stage_dir',text:pendingStage}); pendingStage=null; }
+      elements.push({type:'title', text:t.slice(2).trim()});
+      continue;
+    }
+
+    // Bold character name: **...**  (must not start with **)
+    const boldMatch = t.match(/^\*\*([^*]+)\*\*$/);
+    if (boldMatch) {
+      const inner = boldMatch[1].trim();
+      if (!inner.startsWith('[')) {
+        if (pendingStage) { elements.push({type:'stage_dir',text:pendingStage}); pendingStage=null; }
+        elements.push({type:'character', speaker:inner});
+        continue;
+      }
+    }
+
+    // Italic *...*
+    if (t.startsWith('*') && !t.startsWith('**')) {
+      let inner = (t.startsWith('*') && t.endsWith('*') && t.length > 1)
+        ? t.slice(1,-1) : t.slice(1);
+      // Strip any bold markers inside for display simplicity
+      inner = inner.replace(/\*\*/g, '');
+
+      if (pendingStage !== null) {
+        pendingStage += ' ' + inner;
+        if (inner.includes(']')) {
+          elements.push({type:'stage_dir', text:pendingStage});
+          pendingStage = null;
+        }
+      } else if (inner.startsWith('[')) {
+        if (inner.includes(']')) {
+          elements.push({type:'stage_dir', text:inner});
+        } else {
+          pendingStage = inner;
+        }
+      } else if (inner.startsWith('(')) {
+        elements.push({type:'parenthetical', text:inner});
+      } else {
+        elements.push({type:'dialogue', text:inner});
+      }
+      continue;
+    }
+
+    // Plain text
+    if (pendingStage !== null) { elements.push({type:'stage_dir',text:pendingStage}); pendingStage=null; }
+    elements.push({type:'dialogue', text:t});
+  }
+  if (pendingStage) elements.push({type:'stage_dir',text:pendingStage});
+  return elements;
+}
+
+function buildBlocks(elements) {
+  const blocks = [];
+  let cur = null;
+  for (const el of elements) {
+    if (el.type === 'character') {
+      if (cur) blocks.push(cur);
+      cur = {type:'speech', speaker:el.speaker, parenthetical:'', text:''};
+    } else if (el.type === 'parenthetical' && cur) {
+      cur.parenthetical = el.text;
+    } else if (el.type === 'dialogue' && cur) {
+      cur.text = cur.text ? cur.text + ' ' + el.text : el.text;
+    } else if (el.type === 'stage_dir') {
+      if (cur) { blocks.push(cur); cur = null; }
+      blocks.push({type:'stage_dir', text:el.text});
+    }
+  }
+  if (cur) blocks.push(cur);
+  return blocks;
+}
+
+function isSarah(spk) {
+  return /SARAH/.test(spk.toUpperCase());
+}
+
+function buildSarahLines(blocks) {
+  const lines = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    if (b.type !== 'speech' || !isSarah(b.speaker)) continue;
+
+    // Gather up to 3 preceding blocks as context
+    const ctx = [];
+    for (let j = Math.max(0, i-3); j < i; j++) ctx.push(blocks[j]);
+
+    // Immediate cue = last preceding speech (non-Sarah preferred)
+    // Walk back until we find a non-Sarah speech; if none, use any speech or stage dir
+    let cue = null;
+    for (let j = i-1; j >= 0; j--) {
+      if (blocks[j].type === 'speech') { cue = blocks[j]; break; }
+      if (blocks[j].type === 'stage_dir' && !cue) { cue = blocks[j]; }
+    }
+
+    // Clean up text: strip trailing bing sounds that leaked from PDF
+    const rawText = b.text.trim();
+    let text = rawText.replace(/\s*bing!?\s*$/i, '').trim();
+
+    // Extract inline leading parenthetical e.g. "(happily) Wow!" → paren + clean text
+    let parenthetical = b.parenthetical || '';
+    if (!parenthetical) {
+      const pm = text.match(/^\(([^)]*)\)\s+/);
+      if (pm) { parenthetical = pm[0].trim(); text = text.slice(pm[0].length); }
+    }
+
+    lines.push({
+      speaker: b.speaker,
+      parenthetical,
+      text,
+      cue,
+      context: ctx,
+      blockIdx: i,
+    });
+  }
+  return lines;
+}
+
+// ── Data ────────────────────────────────────────────────────────────────────
+const RAW_MD = document.getElementById('md-src').textContent;
+const elements = parseMd(RAW_MD);
+const blocks   = buildBlocks(elements);
+const ALL_LINES = buildSarahLines(blocks);
+const TOTAL     = ALL_LINES.length;
+
+// ── State ───────────────────────────────────────────────────────────────────
+let learned   = JSON.parse(localStorage.getItem('itl-sarah-learned') || '[]');
+// Ensure array length matches
+while (learned.length < TOTAL) learned.push(false);
+
+let playlist  = ALL_LINES.map((_,i)=>i); // ordered or shuffled indices
+let pos       = 0;   // position in playlist
+let revealed  = false;
+let skipMode  = false;
+
+function saveLearned() {
+  localStorage.setItem('itl-sarah-learned', JSON.stringify(learned));
+}
+
+// ── Playlist helpers ─────────────────────────────────────────────────────────
+function buildPlaylist() {
+  if (skipMode) {
+    const pl = ALL_LINES.map((_,i)=>i).filter(i=>!learned[i]);
+    return pl.length ? pl : ALL_LINES.map((_,i)=>i);
+  }
+  return ALL_LINES.map((_,i)=>i);
+}
+
+function applyFilter() {
+  skipMode = document.getElementById('skip-learned').checked;
+  playlist = buildPlaylist();
+  pos = 0;
+  render();
+}
+
+function shuffle() {
+  const unlearned = ALL_LINES.map((_,i)=>i).filter(i=>!learned[i]);
+  const pool = unlearned.length ? unlearned : ALL_LINES.map((_,i)=>i);
+  // Fisher-Yates
+  for (let i = pool.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]] = [pool[j],pool[i]];
+  }
+  playlist = pool;
+  pos = 0;
+  if (skipMode) document.getElementById('skip-learned').checked = false;
+  skipMode = false;
+  render();
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  const lineIdx = playlist[pos];
+  const line    = ALL_LINES[lineIdx];
+  revealed      = false;
+
+  // Progress meta
+  const learnedCount = learned.filter(Boolean).length;
+  document.getElementById('counter').textContent =
+    `Line ${lineIdx+1} of ${TOTAL}  (${pos+1}/${playlist.length} in session)`;
+  document.getElementById('learned-count').textContent =
+    `${learnedCount} / ${TOTAL} learned`;
+  document.getElementById('bar-fill').style.width = (learnedCount/TOTAL*100)+'%';
+
+  // Dots
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  ALL_LINES.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (learned[i] ? ' learned' : '') + (i===lineIdx ? ' current' : '');
+    d.title = `Line ${i+1}`;
+    d.onclick = () => { pos = playlist.indexOf(i); if(pos<0){pos=0;} jumpToLineIdx(i); };
+    dotsEl.appendChild(d);
+  });
+
+  // Context
+  const ctxEl = document.getElementById('context-strip');
+  ctxEl.innerHTML = '';
+  const ctxBlocks = line.context.filter(c => c !== line.cue);
+  // Show the last 2 context blocks (stage dirs + speeches)
+  const ctxShow = ctxBlocks.slice(-2);
+  ctxShow.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'ctx-block';
+    if (c.type === 'stage_dir') {
+      div.innerHTML = `<div class="stage-dir">${escHtml(c.text)}</div>`;
+    } else {
+      div.innerHTML = `<div class="ctx-who">${escHtml(c.speaker)}</div>
+        ${c.parenthetical ? `<div class="ctx-text" style="font-style:italic;font-size:0.85em">${escHtml(c.parenthetical)}</div>` : ''}
+        <div class="ctx-text">${escHtml(c.text)}</div>`;
+    }
+    ctxEl.appendChild(div);
+  });
+
+  // Cue
+  const cue = line.cue;
+  if (cue) {
+    if (cue.type === 'stage_dir') {
+      document.getElementById('cue-who').textContent = 'STAGE DIRECTION';
+      document.getElementById('cue-paren').textContent = '';
+      document.getElementById('cue-text').innerHTML = `<em>${escHtml(cue.text)}</em>`;
+    } else {
+      document.getElementById('cue-who').textContent = cue.speaker;
+      document.getElementById('cue-paren').textContent = cue.parenthetical || '';
+      document.getElementById('cue-text').textContent = cue.text;
+    }
+  } else {
+    document.getElementById('cue-who').textContent = '— Scene Opening —';
+    document.getElementById('cue-paren').textContent = '';
+    document.getElementById('cue-text').textContent = '(first speech / no preceding cue)';
+  }
+
+  // Sarah's line (hidden)
+  document.getElementById('s-who').textContent = line.speaker;
+  document.getElementById('s-paren').textContent = line.parenthetical;
+  document.getElementById('s-text').textContent = line.text;
+
+  document.getElementById('hint-text').textContent = '';
+  document.getElementById('btn-hint').disabled = false;
+  document.getElementById('speech-result').classList.remove('show');
+  document.getElementById('speech-status').textContent = '';
+  if (micListening && recog) { recog.stop(); }
+
+  const box = document.getElementById('sarah-box');
+  box.classList.remove('revealed');
+
+  // Learned button — enabled only if already learned or score hits 100%
+  const btn = document.getElementById('btn-learned');
+  if (learned[lineIdx]) {
+    btn.classList.add('on');
+    btn.textContent = '✓ Learned';
+    btn.disabled = false;
+  } else {
+    btn.classList.remove('on');
+    btn.textContent = '☐ Mark Learned';
+    btn.disabled = true;
+  }
+
+  // Jump input placeholder
+  document.getElementById('jump-in').value = '';
+  document.getElementById('jump-in').placeholder = lineIdx+1;
+}
+
+function jumpToLineIdx(idx) {
+  // Find idx in playlist or add it temporarily
+  let p = playlist.indexOf(idx);
+  if (p >= 0) { pos = p; }
+  else { playlist.splice(pos+1, 0, idx); pos++; }
+  render();
+}
+
+function revealHint() {
+  const idx = playlist[pos];
+  const text = ALL_LINES[idx].text;
+  const words = text.trim().split(/\s+/).slice(0, 3).join(' ');
+  document.getElementById('hint-text').textContent = '"' + words + '…"';
+  document.getElementById('btn-hint').disabled = true;
+}
+
+function revealLine() {
+  if (revealed) return;
+  revealed = true;
+  document.getElementById('sarah-box').classList.add('revealed');
+}
+
+function handleBoxClick() {
+  if (revealed) {
+    revealed = false;
+    document.getElementById('sarah-box').classList.remove('revealed');
+  } else {
+    revealLine();
+  }
+}
+
+function go(dir) {
+  pos = (pos + dir + playlist.length) % playlist.length;
+  render();
+}
+
+function toggleLearned() {
+  const idx = playlist[pos];
+  learned[idx] = !learned[idx];
+  saveLearned();
+  render();
+  if (learned[idx] && skipMode) {
+    // Auto-advance when marking learned in skip mode
+    setTimeout(() => go(1), 400);
+  }
+}
+
+function jumpTo() {
+  const v = parseInt(document.getElementById('jump-in').value, 10);
+  if (!isNaN(v) && v >= 1 && v <= TOTAL) jumpToLineIdx(v-1);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Speech Recognition ───────────────────────────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let micListening = false;
+
+(function initSpeech() {
+  const btn = document.getElementById('btn-mic');
+  if (!SpeechRecognition) {
+    btn.disabled = true;
+    btn.title = 'Speech recognition not supported in this browser (try Chrome or Edge)';
+    document.getElementById('speech-status').textContent = 'Not supported in this browser';
+    return;
+  }
+
+  recog = new SpeechRecognition();
+  recog.lang = 'en-US';
+  recog.interimResults = false;
+  recog.maxAlternatives = 1;
+
+  recog.onstart = () => {
+    micListening = true;
+    btn.textContent = '⏹ Stop';
+    btn.classList.add('listening');
+    document.getElementById('speech-status').textContent = 'Listening…';
+    document.getElementById('speech-result').classList.remove('show');
+  };
+
+  recog.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    showSpeechResult(transcript);
+  };
+
+  recog.onerror = (e) => {
+    const msgs = { 'not-allowed': 'Mic access denied', 'no-speech': 'No speech detected', 'network': 'Network error' };
+    document.getElementById('speech-status').textContent = msgs[e.error] || ('Error: ' + e.error);
+  };
+
+  recog.onend = () => {
+    micListening = false;
+    btn.textContent = '🎤 Say It';
+    btn.classList.remove('listening');
+    if (document.getElementById('speech-status').textContent === 'Listening…') {
+      document.getElementById('speech-status').textContent = '';
+    }
+  };
+})();
+
+function toggleMic() {
+  if (!recog) return;
+  if (micListening) {
+    recog.stop();
+  } else {
+    document.getElementById('speech-status').textContent = '';
+    recog.start();
+  }
+}
+
+function normWords(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s']/g, '').trim().split(/\s+/).filter(Boolean);
+}
+
+function diffWords(expected, got) {
+  const m = expected.length, n = got.length;
+  // Build LCS table
+  const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = expected[i-1] === got[j-1]
+        ? dp[i-1][j-1] + 1
+        : Math.max(dp[i-1][j], dp[i][j-1]);
+
+  // Backtrack to produce diff tokens
+  const result = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && expected[i-1] === got[j-1]) {
+      result.unshift({type: 'ok', word: expected[i-1]});
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+      result.unshift({type: 'bad', word: got[j-1]});  // said but not expected
+      j--;
+    } else {
+      result.unshift({type: 'miss', word: expected[i-1]});  // expected but not said
+      i--;
+    }
+  }
+  return result;
+}
+
+function showSpeechResult(transcript) {
+  const idx = playlist[pos];
+  const expected = normWords(ALL_LINES[idx].text.replace(/^\s*\([^)]*\)\s*/i, ''));
+  const got      = normWords(transcript);
+  const diff     = diffWords(expected, got);
+
+  const okCount  = diff.filter(t => t.type === 'ok').length;
+  const pct      = expected.length ? Math.round(okCount / expected.length * 100) : 0;
+
+  const html = diff.map(t => {
+    if (t.type === 'ok')   return `<span class="w-ok">${escHtml(t.word)}</span>`;
+    if (t.type === 'bad')  return `<span class="w-bad">${escHtml(t.word)}</span>`;
+    if (t.type === 'miss') return `<span class="w-miss" title="Click if you said this correctly" onclick="markWordOk(this)">${escHtml(t.word)}</span>`;
+  }).join(' ');
+
+  const resultEl = document.getElementById('speech-result');
+  resultEl.dataset.expected = expected.length;
+  document.getElementById('sr-diff').innerHTML = html;
+  updateSpeechScore();
+  document.getElementById('speech-status').textContent = '';
+  resultEl.classList.add('show');
+
+  // Auto-reveal the line so they can compare
+  revealLine();
+}
+
+function markWordOk(el) {
+  el.className = 'w-ok';
+  el.removeAttribute('title');
+  el.onclick = null;
+  updateSpeechScore();
+}
+
+function updateSpeechScore() {
+  const resultEl = document.getElementById('speech-result');
+  const expected = parseInt(resultEl.dataset.expected, 10) || 0;
+  const okCount  = resultEl.querySelectorAll('.w-ok').length;
+  const pct      = expected ? Math.round(okCount / expected * 100) : 0;
+  const hasMiss  = resultEl.querySelectorAll('.w-miss').length > 0;
+  document.getElementById('sr-score').textContent =
+    `${okCount} / ${expected} words correct (${pct}%)` +
+    (hasMiss ? '  —  tap yellow words to correct false negatives' : '');
+  if (pct === 100) {
+    const btn = document.getElementById('btn-learned');
+    btn.disabled = false;
+  }
+}
+
+// ── Keyboard ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT') return;
+  if (e.key === 'ArrowLeft')  { go(-1); return; }
+  if (e.key === 'ArrowRight') { go(1);  return; }
+  if (e.key === ' ') { e.preventDefault(); revealLine(); return; }
+  if (e.key === 'l' || e.key === 'L') { const b = document.getElementById('btn-learned'); if (!b.disabled) toggleLearned(); return; }
+  if (e.key === 's' || e.key === 'S') { shuffle(); return; }
+  if (e.key === 'r' || e.key === 'R') { toggleMic(); return; }
+});
+
+// ── Dark mode ────────────────────────────────────────────────────────────────
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('itl-dark', isDark ? '1' : '0');
+  document.getElementById('btn-dark').textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+if (localStorage.getItem('itl-dark') === '1') {
+  document.body.classList.add('dark');
+  document.getElementById('btn-dark').textContent = '☀ Light Mode';
+}
+playlist = buildPlaylist();
+render();
+</script>
+</body>
+</html>
