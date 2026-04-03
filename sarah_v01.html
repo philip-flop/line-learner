@@ -1298,7 +1298,7 @@ Sarah, I’m meant to ask you what is bothering you? You’ve been acting strang
 
 **SARAH**
 
-*[Dazed] Hmm? Sorry, I’ve just been thinking.*
+[Dazed] Hmm? Sorry, I’ve just been thinking.
 
 **FRED**
 What about?
@@ -1935,13 +1935,14 @@ function buildSarahLines(blocks) {
     const ctx = [];
     for (let j = Math.max(0, i-3); j < i; j++) ctx.push(blocks[j]);
 
-    // Immediate cue = last preceding speech (non-Sarah preferred)
-    // Walk back until we find a non-Sarah speech; if none, use any speech or stage dir
+    // Immediate cue = last preceding non-Sarah speech; fall back to stage dir
     let cue = null;
+    let fallback = null;
     for (let j = i-1; j >= 0; j--) {
-      if (blocks[j].type === 'speech') { cue = blocks[j]; break; }
-      if (blocks[j].type === 'stage_dir' && !cue) { cue = blocks[j]; }
+      if (blocks[j].type === 'speech' && !isSarah(blocks[j].speaker)) { cue = blocks[j]; break; }
+      if (blocks[j].type === 'stage_dir' && !fallback) { fallback = blocks[j]; }
     }
+    if (!cue) cue = fallback;
 
     // Clean up text: strip trailing bing sounds that leaked from PDF
     const rawText = b.text.trim();
